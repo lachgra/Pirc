@@ -26,7 +26,7 @@ import thread
 gobject.threads_init()
 
 nick = "anonymous"
-vers = "v1.13"
+vers = "v1.14"
 addr = '127.0.0.1'
 port = 5001
 buffer_size = 1024
