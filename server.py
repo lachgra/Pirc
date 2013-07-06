@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
+# Copyright (C) 2013 Lachie Grant <https://github.com/lachgra>
+
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# any later version.
+# the Free Software Foundation, either version 3 of the License, or (at
+# your option) any later version.
 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,35 +20,34 @@ import socket
 import thread
 import time
 import os
+from utils import serverHelp
 
 vers = "v1.14"
 window = False
 
 if len(sys.argv) > 1:
 	if "--help" in sys.argv or "-h" in sys.argv:
-		print "Usage: python server.py [ARGUMENTS]..."
-		print "-h, --help		prints help message"
-		print "-v, --version		print the version"
+		serverHelp()
 		sys.exit()
 
 	if "--version" in sys.argv or "-v" in sys.argv:
-		print "Python Internet Relay Chat - pirc %s" % vers
+		print "Python Internet Relay Chat Server - pirc %s" % vers
 		sys.exit()
-
+	
 	if "--no-window" in sys.argv or "-nw" in sys.argv:
 		window = False
 
-## server class ##
-class server:
+## Server class ##
+class Server:
 	def __init__(self, window):
 		self.addr = "127.0.0.1"
 		self.port = 5001
-		self.buffer_size = 1024
+		self.buffer_size = 512
 		self.logging = False
-		self.window = window
+		self.window = window # TODO
 
 		self.clientmap = {}
-		self.disconnected = []
+		self.disconnected = 0
 		self.threshold = 10
 
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)		# creates an empty socket
@@ -62,13 +63,16 @@ class server:
 			self.log("Listening on " + repr(self.sock.getsockname()))
 			print "\n"
 
+		else:
+			print "Listening on " + repr(self.sock.getsockname()) + "\n"
+
 		while True:
 			try:
-				sock, addr = self.sock.accept()						# accepts a new client
-				index = len(self.clientmap) + len(self.disconnected) 			# the client index
-				c = client(index, sock, addr)							# the client instance
-				self.clientmap[index] = c						# add the client to clientmap
-				thread.start_new_thread(self.listen, (c,))				# listens on the client socket
+				sock, addr = self.sock.accept()				# accepts a new client
+				index = len(self.clientmap) + self.disconnected		# the client index
+				c = client(index, sock, addr)				# the client instance
+				self.clientmap[index] = c				# add the client to clientmap
+				thread.start_new_thread(self.listen, (c,))		# listens on the client socket
 			except KeyboardInterrupt:	
 				sys.exit("Exiting: KeyboardInterrupt")
 
@@ -104,12 +108,13 @@ class server:
 
 	def disconnect(self, client):
 		self.log("Disconnected socket, #%s, %s, %s" % (repr(client.index), client.addr[0], client.nick))
-		del self.clientmap[client.index]	# delete the client instance
+		self.disconnected += 1
+		del self.clientmap[client.index]
 
 	def log(self, log_message):
 		"""Logs everything to a file"""
-		if self.logging:
-			print log_message
+		print log_message
+		if self.logging:		
 			ctime = time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime())
 			self.log_file.write(ctime + ": " + log_message + "\n")
 
@@ -120,11 +125,10 @@ class server:
 			for i in banner.readlines():
 				print i,
 			print "\n"
-			if not self.logging:
-				print "Listening on " + repr(self.sock.getsockname()) + "\n"
 
 ## client class ##
 class client:
+	"""Represents a client as an attribute of the server"""
 	def __init__(self, index, sock, addr):
 		self.index = index
 		self.sock = sock
@@ -137,7 +141,7 @@ class client:
 			
 
 
-## __main__ loop ##
+## __main__ ##
 if __name__ == "__main__":
-	s = server(window)
+	s = Server(window)
 

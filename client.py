@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
+# Copyright (C) 2013 Lachie Grant <https://github.com/lachgra>
+
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# any later version.
+# the Free Software Foundation, either version 3 of the License, or (at
+# your option) any later version.
 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,54 +21,62 @@ import gtk
 
 import sys
 import socket
+import thread
 import time
 import gobject
-import thread
+from utils import clientHelp
 
 gobject.threads_init()
 
-nick = "anonymous"
 vers = "v1.14"
+nick = "anonymous"
 addr = '127.0.0.1'
 port = 5001
-buffer_size = 1024
+buffer_size = 512
 
 if len(sys.argv) > 1:
-	if sys.argv[1] == "--help" or sys.argv[1] == "-h":
-		print "Usage: python client.py [ARGUMENTS]..."
-		print "-n, --nick nickname	specify a nickname"
-		print "-s, --server		specify a server"
-		print "-o, --opt		specify everything"
-		print "-v, --version		print the version"
+	if "--help" in sys.argv or "-h" in sys.argv:
+		clientHelp()
 		sys.exit()
 
-	elif sys.argv[1] == "--nick" or sys.argv[1] == "-n":
-		if len(sys.argv[2]) > 15:
-			print "Nickname too long, defaulting to 'anonymous'"
-			nick = "anonymous"
-		else:
-			nick = sys.argv[2]
-		print "Nickname: %s" % nick
+	if "--version" in sys.argv or "-v" in sys.argv:
+		print "Python Internet Relay Chat Client - pirc %s" % vers
+		sys.exit()
 
-	elif sys.argv[1] == "--server" or sys.argv[1] == "-s":
-		if len(sys.argv[2]) > 15: # not an IP address
-			sys.exit("Exiting: IP address too long")
-		else:
-			addr = sys.argv[2]
+	if "--nick" in sys.argv:	# specify a nickname
+		i = sys.argv.index("--nick") + 1
+		nick = sys.argv[i]
 
-	elif sys.argv[1] == "--opt" or sys.argv[1] == "-o":
+	if "-n" in sys.argv:
+		i = sys.argv.index("-n") + 1
+		nick = sys.argv[i]
+
+	if "--server" in sys.argv: 	# specify a server address
+		i = sys.argv.index("--server") + 1
+		addr = sys.argv[i]
+
+	if "-s" in sys.argv:	
+		i = sys.argv.index("-s") + 1
+		addr = sys.argv[i]
+
+	if "--port" in sys.argv: 	# specify a port
+		i = sys.argv.index("--port") + 1
+		port = sys.argv[i]
+
+	if "-p" in sys.argv:
+		i = sys.argv.index("-p") + 1
+		port = sys.argv[i]
+
+	if "--opt" in sys.argv or "-o" in sys.argv: # set custom options (overwrites)
 		print "Python Internet Relay Chat - pirc %s" % vers
+		print "Setting custom options overwrites other arguments"
 		nick = raw_input("Enter a nickname: ")
 		addr = raw_input("Enter a server address: ")
 		port = int(raw_input("Enter a port: "))
-
-	elif sys.argv[1] == "--version" or sys.argv[1] == "-v":
-		print "Python Internet Relay Chat - pirc %s" % vers
-
-	else:
-		pass
-
-class client:
+	
+## Client class ##
+class Client:
+	"""Represents an independent client"""
 	def __init__(self, addr, port, nick):
 		self.addr = addr	# server address
 		self.port = port	# server tcp/ip port
@@ -175,7 +185,7 @@ class client:
 		self.window.show_all()
 
 if __name__ == "__main__":
-	me = client(addr, port, nick) # attempt to connect
+	me = Client(addr, port, nick) # attempt to connect
 	
 	try:
 		me.connect()
