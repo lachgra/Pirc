@@ -1,4 +1,4 @@
-PIRC is an Internet Relay Chat system written in Python 2.7.3, licensed under the GNU GPLv3.
+PIRC is an Internet Relay Chat system written in Python, licensed under the GNU GPLv3.
 
 server.py -- runs the server (IRC daemon)
 
@@ -14,8 +14,12 @@ python server.py [--help][--version]
 
 python client.py [--help][--version][--opt][--nick nickname]
 
+To do:
+Add encryption
+Add a GTK interface for the server
 
+Feel free to contact me on any queries you may have. :-)
 
-E-mail: l_g@lavabit.com
+E-mail: lachie.j.g@live.com
 
 
