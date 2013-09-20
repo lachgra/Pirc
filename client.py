@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+#TODO, change the size of the buttons
+
 import pygtk
 pygtk.require('2.0')
 import gtk
@@ -28,11 +30,11 @@ from utils import clientHelp
 
 gobject.threads_init()
 
-vers = "v1.14"
+vers = "v1.15"
 nick = "anonymous"
 addr = '127.0.0.1'
-port = 5001
-buffer_size = 512
+port = 6667
+buffer_size = 256
 
 if len(sys.argv) > 1:
 	if "--help" in sys.argv or "-h" in sys.argv:
@@ -159,6 +161,7 @@ class Client:
 
 		self.winScroll = gtk.ScrolledWindow()
 		self.winScroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+
 		# add the textview to the scrolled window		
 		self.winScroll.add(self.txtView)
 		
