@@ -22,6 +22,6 @@ Resize the buttons
 
 Feel free to contact me on any queries you may have. :-)
 
-E-mail: lachie.j.g@live.com
+E-mail: lachie.g.j@gmail.com
 
 
