@@ -20,8 +20,4 @@ To do:
 Add encryption
 Resize the buttons
 
-Feel free to contact me on any queries you may have. :-)
-
 E-mail: lachie.g.j@gmail.com
-
-
