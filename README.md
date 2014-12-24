@@ -19,5 +19,3 @@ python client.py [--help][--version][--nick nickname]
 To do:
 Add encryption
 Resize the buttons
-
-E-mail: lachie.g.j@gmail.com
