@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright (C) 2013 Lachie Grant <https://github.com/lachgra>
+# Copyright (C) 2014 Lachie Grant <https://github.com/lachgra>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,8 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-#TODO, change the size of the buttons
-
 import pygtk
 pygtk.require('2.0')
 import gtk
@@ -26,8 +24,6 @@ import socket
 import thread
 import time
 import gobject
-from utils import clientHelp
-
 gobject.threads_init()
 
 vers = "v1.15"
@@ -36,45 +32,23 @@ addr = '127.0.0.1'
 port = 6667
 buffer_size = 256
 
-if len(sys.argv) > 1:
-	if "--help" in sys.argv or "-h" in sys.argv:
-		clientHelp()
-		sys.exit()
+if len(sys.argv) > 2 and sys.argv[1] == "-s":
+	screen_size = sys.argv[2].split('x')
+	for i in range(2):
+		screen_size[i] = int(screen_size[i])
+	width, height = screen_size
+	
+else:
+	width, height = gtk.gdk.screen_get_default().get_width(), gtk.gdk.screen_get_default().get_height()
 
-	if "--version" in sys.argv or "-v" in sys.argv:
-		print "Python Internet Relay Chat Client - pirc %s" % vers
-		sys.exit()
+def clientHelp():
+	print "Usage: python client.py [ARGUMENTS]..."
+	print "-h, --help		print help message"
+	print "-v, --version		print the version"
+	print "-n, --nick		specify a nickname"
+	print "-s, --server		specify a server"
+	print "-o, --opt		specify everything"
 
-	if "--nick" in sys.argv:	# specify a nickname
-		i = sys.argv.index("--nick") + 1
-		nick = sys.argv[i]
-
-	if "-n" in sys.argv:
-		i = sys.argv.index("-n") + 1
-		nick = sys.argv[i]
-
-	if "--server" in sys.argv: 	# specify a server address
-		i = sys.argv.index("--server") + 1
-		addr = sys.argv[i]
-
-	if "-s" in sys.argv:	
-		i = sys.argv.index("-s") + 1
-		addr = sys.argv[i]
-
-	if "--port" in sys.argv: 	# specify a port
-		i = sys.argv.index("--port") + 1
-		port = sys.argv[i]
-
-	if "-p" in sys.argv:
-		i = sys.argv.index("-p") + 1
-		port = sys.argv[i]
-
-	if "--opt" in sys.argv or "-o" in sys.argv: # set custom options (overwrites)
-		print "Python Internet Relay Chat - pirc %s" % vers
-		print "Setting custom options overwrites other arguments"
-		nick = raw_input("Enter a nickname: ")
-		addr = raw_input("Enter a server address: ")
-		port = int(raw_input("Enter a port: "))
 	
 ## Client class ##
 class Client:
@@ -93,7 +67,6 @@ class Client:
 		self.socket.send(self.nick)  # send the nick
 		thread.start_new_thread(self.listen, ())
 		self.setupGui()
-
 		gtk.main()
 		self.disconnect()
 
@@ -101,11 +74,14 @@ class Client:
 		self.socket.send("/close")
 		self.quit = True
 		self.socket.close()
+		print "Disconnected"
+		exit()
 		
 	def send(self, data):
 		if data == "/close": # close
 			self.disconnect()
-			sys.exit("Exiting: /close")
+			self.socket.send(data)
+			exit("Exiting: /close")
 		if data == "/help": # help
 			pass
 		self.socket.send(data)
@@ -131,7 +107,7 @@ class Client:
 	def setupGui(self):
 		# create a new window
 		self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-		self.window.resize(600, 400)
+		self.window.resize(width/2, height/2)
 
 		# connects the exit button with gtk.main_quit
 		self.window.connect("delete-event", gtk.main_quit) 
@@ -177,20 +153,13 @@ class Client:
 		self.sbox.pack_start(self.txtInput, True, True, 0)
 		
 
-		"""
-		Send_handler is the handler ID, used to disconnect or block the handler
-		of the "clicked" signal, emitted by the cmdSend GtkWidget instance.
-		This method call will still connect the button with the function
-		cmdSendClicked()
-		"""
-
 		send_handler = self.cmdSend.connect("clicked", self.btnClick, "cmdSend")
 		self.window.show_all()
 
 if __name__ == "__main__":
 	me = Client(addr, port, nick) # attempt to connect
 	
-	try:
+	try: 
 		me.connect()
 	except socket.error as e:
 		sys.exit("Exiting: Socket " + repr(e) + ", try again.\n")
@@ -199,6 +168,7 @@ if __name__ == "__main__":
 		me.main()
 		me.disconnect()
 	except socket.error as e:
+		me.disconnect()
 		if e.errno == 9: # bad file descriptor
 			sys.exit()
 		if e.errno == 32: # broken pipe
@@ -208,4 +178,3 @@ if __name__ == "__main__":
 	except KeyboardInterrupt:
 		me.disconnect()
 		sys.exit("Exiting: KeyboardInterrupt")
-
